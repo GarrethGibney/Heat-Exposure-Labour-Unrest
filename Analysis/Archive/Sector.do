@@ -1,0 +1,34 @@
+foreach var of varlist labour_unrest_31_33 labour_unrest_42 labour_unrest_71 labour_unrest_51 labour_unrest_61 labour_unrest_62 labour_unrest_72 labour_unrest_23 labour_unrest_54 labour_unrest_92 labour_unrest_44_45 labour_unrest_48_49 labour_unrest_56 labour_unrest_21 labour_unrest_22 labour_unrest_53 labour_unrest_11 labour_unrest_52 labour_unrest_55 {
+ppmlhdfe `var' ///
+    c.nn_tavg_above_90_lag_60d ///
+    i.year ///
+    if year != 2020 & season == 3, ///
+    absorb(fips month) cluster(fips date) offset(log_emp)
+	
+*esttab using "C:\Users\20234503\Desktop\Research\Weather and Strikes\Project\Results_Jan2026\Raw\baseline_`var'.csv", ///
+cells("b se") noobs plain replace
+}
+
+*Agregating Sectors
+egen goods_producing = rowtotal(labour_unrest_11 labour_unrest_21 labour_unrest_22 labour_unrest_23 labour_unrest_31_33)
+
+egen professional_services = rowtotal(labour_unrest_51 labour_unrest_52 labour_unrest_53 labour_unrest_54 labour_unrest_55 labour_unrest_61)
+
+egen nonprofessional_services = rowtotal(labour_unrest_42 labour_unrest_44_45 labour_unrest_48_49 labour_unrest_56 labour_unrest_71 labour_unrest_72)
+
+gen healthcare = labour_unrest_62
+
+gen public_sector = labour_unrest_92
+
+foreach var of varlist goods_producing professional_services nonprofessional_services healthcare public_sector {
+ppmlhdfe `var' ///
+    i.num_above_90_60d ///
+    i.year ///
+    if year != 2020, ///
+    absorb(county_month) cluster(fips date) offset(log_emp)
+	
+*esttab using "C:\Users\20234503\Desktop\Research\Weather and Strikes\Project\Results_Jan2026\Raw\baseline_`var'.csv", ///
+cells("b se") noobs plain replace
+}
+
+gen total = sum(labour_unrest) if season == 3
